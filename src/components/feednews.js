@@ -12,8 +12,6 @@ const FeedNews = (props) => {
   const openSearcher = () => {
     setState({ ...state, searching: true });
     setTimeout(() => input_search.current.focus());
-    // input_search.current.focus();
-    // console.log(input_search.current.className);
   };
 
   const closeSearcher = (event) => {
@@ -40,9 +38,9 @@ const FeedNews = (props) => {
     // console.log(state.results.leng);
   };
 
-  useEffect(() => {
-    console.log("sdfasdf");
-  }, []);
+  // useEffect(() => {
+  //   console.log("sdfasdf");
+  // }, []);
 
   const history = useHistory();
 
@@ -97,6 +95,7 @@ const FeedNews = (props) => {
     </div>
   );
 
+  setInterval(function () {}, 500);
   return (
     <div className="FeedNews normalDiv">
       <div
