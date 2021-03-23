@@ -18,21 +18,50 @@ const CREATE_USER = gql`
       errors
       token
     }
+    loginUser(username: $username, password: $password1) {
+      success
+      errors
+      token
+      unarchiving
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
+
+const LOGIN_USER = gql`
+  mutation login($username: String = "sdasdff", $password: String = "asdf") {
+    loginUser(username: $username, password: $password) {
+      success
+      errors
+      token
+    }
   }
 `;
 
 const Authentication = (props) => {
   let usernameL, passwordL, usernameR, emailR, password1R, password2R;
   const [createUser, { data }] = useMutation(CREATE_USER);
+  const [loginUser, { data: datal }] = useMutation(LOGIN_USER);
+
   const [state, setstate] = useState({
     errors: false,
+    errorsl: false,
     data: data,
+    datal: datal,
     register: false,
   });
+  // useEffect(() => {
+  // loginUser();
+  // console.log(errors);
+  // }, []);
+
   useEffect(() => {
     if (data) {
       if (data.createUser.success) {
-        console.log(data.createUser.token);
+        // console.log(data.createUser.token);
         localStorage.setItem("token", data.createUser.token);
       } else if (data.createUser.errors) {
         const errorNotification = Object.keys(data.createUser.errors).map(
@@ -41,7 +70,7 @@ const Authentication = (props) => {
             // return `${key} ${data.createUser.errors[key]}`;
           }
         );
-        console.log(errorNotification);
+        // console.log(errorNotification);
         setstate({
           ...state,
           errors: errorNotification,
@@ -50,7 +79,28 @@ const Authentication = (props) => {
         // setstate({ ...state, errors: data.createUser.errors });
       }
     }
-  }, [state.data, data]);
+    if (datal) {
+      if (datal.loginUser.success) {
+        // console.log("success", data.createUser.token);
+        localStorage.setItem("token", datal.loginUser.token);
+      } else {
+        // console.log("datal");
+        const errorNotificationl = Object.keys(datal.loginUser.errors).map(
+          function (key, index) {
+            return datal.loginUser.errors[key][0].message;
+            // return `${key} ${datal.loginUser.errorsl[key]}`;
+          }
+        );
+        // console.log(errorNotificationl[0]);
+        setstate({
+          ...state,
+          errorsl: errorNotificationl,
+        });
+        // console.log(datal.loginUser.errorsl);
+        // setstate({ ...state, errorsl: datal.loginUser.errorsl });
+      }
+    }
+  }, [state.data, data, state.datal, datal]);
   const registerSection = (
     <div className="Login">
       <div>
@@ -161,9 +211,8 @@ const Authentication = (props) => {
               Login
             </small>
             <button
-              onClick={() => {
-                console.log(data);
-              }}
+              onClick={() => localStorage.setItem("password", password1R.value)}
+              // the function is delegated to the form
               type="submit"
               className="btn btn-outline-light"
             >
@@ -176,7 +225,17 @@ const Authentication = (props) => {
   );
   const loginSection = (
     <div className="Login">
-      <form>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          loginUser({
+            variables: {
+              username: usernameL.value,
+              password: passwordL.value,
+            },
+          });
+        }}
+      >
         <h1 className="text" style={{ textAlign: "center" }}>
           Book app login
         </h1>
@@ -211,7 +270,22 @@ const Authentication = (props) => {
             name="sdfsdfsdf"
           />
         </div>
-
+        {state.errorsl ? (
+          <React.Fragment>
+            <br></br>
+            <small
+              style={{
+                color: "red",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              {state.errorsl[0]}
+            </small>
+          </React.Fragment>
+        ) : (
+          ""
+        )}
         <br></br>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <small
@@ -221,7 +295,11 @@ const Authentication = (props) => {
           >
             register
           </small>
-          <button type="submit" className="btn btn-outline-light">
+          <button
+            onClick={() => localStorage.setItem("password", passwordL.value)}
+            type="submit"
+            className="btn btn-outline-light"
+          >
             Login
           </button>
         </div>

@@ -25,109 +25,395 @@ const VERIFY_TOKEN = gql`
   }
 `;
 
+const QUERY_BOOKS = gql`
+  {
+    allBooks {
+      id
+      name
+      description
+      made
+      category
+      love {
+        id
+        username
+        email
+      }
+      author {
+        id
+        username
+        email
+      }
+    }
+  }
+`;
+
+const ADD_BOOK = gql`
+  mutation addBook($category: String!, $name: String!, $description: String!) {
+    newBook(category: $category, name: $name, description: $description) {
+      book {
+        id
+      }
+    }
+  }
+`;
+
+const EDIT_LIKE = gql`
+  mutation editLike($bookid: ID!, $like: Boolean!) {
+    editPostLike(bookid: $bookid, like: $like) {
+      book {
+        id
+      }
+    }
+  }
+`;
+
+const EDIT_AUTHOR = gql`
+  mutation editAuthor($authorid: ID!, $username: String!, $email: String!) {
+    editTheAuthor(authorid: $authorid, username: $username, email: $email) {
+      __typename
+    }
+  }
+`;
+
+const ME_QUERY = gql`
+  {
+    me {
+      id
+      verified
+      username
+      email
+      love {
+        id
+        name
+        author {
+          id
+          username
+          email
+        }
+      }
+    }
+  }
+`;
+
+const ALL_AUTHORS = gql`
+  {
+    allAuthors {
+      id
+      username
+      email
+      love {
+        id
+        name
+        author {
+          id
+          username
+        }
+      }
+    }
+  }
+`;
+
+const EDIT_BOOK = gql`
+  mutation editBook(
+    $bookid: ID!
+    $name: String!
+    $description: String!
+    $category: String!
+    $delete: Boolean!
+  ) {
+    editTheBook(
+      bookid: $bookid
+      name: $name
+      description: $description
+      category: $category
+      delete: $delete
+    ) {
+      book {
+        __typename
+      }
+    }
+  }
+`;
+
+// const LOGIN_USER = gql`
+//   mutation loginAuthor($username: String!, $password: String!) {
+//     loginUser(username: $username, password: $password) {
+//       success
+//       errors
+//       token
+//       unarchiving
+//       user {
+//         id
+//         username
+//       }
+//     }
+//   }
+// `;
+
+const LOGIN_AUTHOR = gql`
+  mutation loginAuthor($username: String!, $password: String!) {
+    loginUser(username: $username, password: $password) {
+      success
+      errors
+      token
+      unarchiving
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
 const App = (props) => {
-  const [verifyToken, { data }] = useMutation(VERIFY_TOKEN, {
+  const [verifyToken, { data: verifyTokenData, loading }] = useMutation(
+    VERIFY_TOKEN
+  );
+
+  const [addBook, { data: addBookData }] = useMutation(ADD_BOOK);
+
+  const [editLike, { data: editLikeData }] = useMutation(EDIT_LIKE);
+
+  const [editAuthor, { data: editAuthorData }] = useMutation(EDIT_AUTHOR);
+
+  const [loginAuthor, { data: loginAuthorData }] = useMutation(LOGIN_AUTHOR);
+
+  const [
+    editBook,
+    { data: editBookData, errors: editBookDataErrors },
+  ] = useMutation(EDIT_BOOK, {
     pollInterval: 500,
   });
+
+  const { data: queryBooks } = useQuery(QUERY_BOOKS, {
+    pollInterval: 500,
+  });
+
+  const { data: meQuery } = useQuery(ME_QUERY, {
+    pollInterval: 500,
+  });
+
+  const { data: allAuthors } = useQuery(ALL_AUTHORS, {
+    pollInterval: 500,
+  });
+
+  // const { data: allAuthors } = useQuery(ALL_AUTHORS, {
+  //   pollInterval: 500,
+  // });
 
   const [state, setState] = useState({
     token: localStorage.getItem("token") || "null",
     authenticated: false,
-    data: data,
+    data: verifyTokenData,
     update: false,
+    edit: false,
   });
 
   const history = useHistory({});
 
+  const location = useLocation({});
+
   const goHome = () => {
-    history.push("/");
+    return history.push("/");
   };
-  const goAuthor = () => {
-    history.push("/author/");
+  const goAuthor = (username) => {
+    handleEdit(false);
+    if (username) {
+      return history.push(`/author/${username}/`);
+    }
+    return history.push(`/author/`);
   };
-  const handleUpdate = () => {
-    setState({
-      ...state,
-      update: !state.update,
-    });
+  const goBook = (id) => {
+    if (id) {
+      return history.push(`/book/${id}/`);
+    }
+    return history.push(`/book/author/`);
   };
-  // useEffect(() => {
-  //   console.log(123);
-  // });
+
+  const handleEdit = (edit) => {
+    if (edit === false) {
+      setState({
+        ...state,
+        edit: false,
+      });
+    } else if (edit === "bioEdit") {
+      setState({
+        ...state,
+        edit: "bioEdit",
+      });
+    } else if (edit === "passEdit") {
+      setState({
+        ...state,
+        edit: "passEdit",
+      });
+    } else if (edit === "delete") {
+      setState({
+        ...state,
+        edit: "delete",
+      });
+    }
+  };
+
+  const difference = (date1, date2) => {
+    const dif = date1.getTime() - date2.getTime();
+    const seconds = Math.abs(dif / 1000);
+    const minutes = seconds / 60;
+    const hours = minutes / 60;
+
+    if (0 <= seconds && seconds <= 60) {
+      return `${parseInt(seconds) === 0 ? 1 : parseInt(seconds)} second${
+        parseInt(seconds) === 1 || parseInt(seconds) === 0 ? "" : "s"
+      } ago`;
+    } else if (0 <= minutes && minutes <= 60) {
+      return `${parseInt(minutes) === 0 ? 1 : parseInt(minutes)} minute${
+        parseInt(minutes) === 1 || parseInt(minutes) === 0 ? "" : "s"
+      } ago`;
+    } else {
+      return `${parseInt(hours) === 0 ? 1 : parseInt(hours)} hour${
+        parseInt(hours) === 1 || parseInt(hours) === 0 ? "" : "s"
+      } ago`;
+    }
+  };
 
   useEffect(() => {
-    // on load call server compare local and remote token
-    verifyToken({
-      variables: { token: localStorage.getItem("token") || "null" },
-    });
-  }, [state.token]);
-
-  if (!data) {
-    // call still not answering
-    return (
-      <div className="callNoAnswer">
-        {/* <h1 onClick={() => console.log(data.verify)}>asdfasdfasdf</h1> */}
-      </div>
-    );
-  }
-  if (data) {
-    // Call work and already answered
-    setInterval(function () {
-      if (state.token !== localStorage.getItem("token")) {
-        setState({
-          ...state,
-          token: localStorage.getItem("token"),
+    if (localStorage.getItem("token")) {
+      if (localStorage.getItem("token") !== "") {
+        console.log("token was verified");
+        verifyToken({
+          variables: {
+            token: localStorage.getItem("token"),
+          },
         });
-      } else if (state.token === localStorage.getItem("token")) {
-        // verifyToken({ variables: { token: localStorage.getItem("token") } });
       }
-      // setState({
-      //   ...state,
-      //   token: localStorage.getItem("token"),
-      // });
-    }, 500);
+    }
+  }, []);
 
-    return (
-      <React.Fragment>
-        <div className={data.verify.success ? "navbar" : "dnone"}>
-          <h2 onClick={goHome} className="navbar_logo-s text">
-            TMHBA
-          </h2>
-          <h2 onClick={goHome} className="navbar_logo-b text">
-            TMHBookApp
-          </h2>
-          {/* <h2 className="navbar_profile">R</h2> */}
-          <div className="navbar_right">
-            <p className="text">Log out</p>
-            <div onClick={goAuthor} className="navbar_right_photo">
-              <img
-                className="navbar_right_photo-foto"
-                src={require(`./assets/images/profileImage.jpeg`).default}
-                alt={"test1.jpg"}
-              ></img>
+  // if (loading) {
+  //   // call still not answering
+  //   console.log(verifyTokenData, "waiting for answer");
+  //   return <div className="callNoAnswer"></div>;
+  // }
+
+  return (
+    <div>
+      {meQuery && verifyTokenData ? (
+        meQuery.me ? (
+          <div className={verifyTokenData.verify.success ? "navbar" : "dnone"}>
+            <h2 onClick={goHome} className="navbar_logo-s text">
+              TMHBA
+            </h2>
+            <h2 onClick={goHome} className="navbar_logo-b text">
+              TMHBookApp
+            </h2>
+            {/* <h2 className="navbar_profile">R</h2> */}
+            <div className="navbar_right">
+              <p
+                onClick={() => {
+                  window.location.reload();
+                  localStorage.setItem("token", "");
+                  goHome();
+                }}
+                className="text"
+              >
+                Log out
+              </p>
+              <div
+                onClick={() => goAuthor(meQuery.me.username)}
+                className="navbar_right_photo"
+              >
+                <img
+                  className="navbar_right_photo-foto"
+                  src={require(`./assets/images/profileImage.jpeg`).default}
+                  alt={"test1.jpg"}
+                ></img>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="main">
-          <div className="head">
-            <Switch>
-              {data.verify.success ? (
-                <Route exact path="/" render={() => <FeedNews />} />
-              ) : (
+        ) : (
+          <h1>not me query</h1>
+        )
+      ) : (
+        ""
+      )}
+      <div className="main">
+        <div className="head">
+          <Switch>
+            {verifyTokenData ? (
+              // if there is verifyTokenData
+              verifyTokenData.verify.success ? (
+                // if verifyTokenData returned true
                 <Route
                   exact
                   path="/"
-                  render={() => <Authentication onUpdate={handleUpdate} />}
+                  render={() => (
+                    <FeedNews
+                      onDifference={difference}
+                      onGoAuthor={goAuthor}
+                      onGoBook={goBook}
+                      onGoHome={goHome}
+                      onQueryBooks={queryBooks}
+                      onAddBook={addBook}
+                      onEditLike={editLike}
+                      onMeQuery={meQuery}
+                    />
+                  )}
+                />
+              ) : (
+                // <h1 onClick={() => console.log(meQuery)}>verified success</h1>
+                // if verifyTokenData returned false
+                // <h1 onClick={() => console.log(verifyTokenData)}>1</h1>
+                <Route exact path="/" render={() => <Authentication />} />
+              )
+            ) : (
+              // verifyTokenData is still not received
+              <React.Fragment>
+                <div className="callNoAnswer"></div>
+                {/* <Route exact path="/" render={() => <Authentication />} /> */}
+              </React.Fragment>
+            )}
+            <Route
+              path="/author/"
+              render={() => (
+                <Author
+                  onHistory={history}
+                  onGoAuthor={goAuthor}
+                  onGoBook={goBook}
+                  onQueryBooks={queryBooks}
+                  onMeQuery={meQuery}
+                  onEditBook={editBook}
+                  editBookData={editBookData}
+                  editBookDataErrors={editBookDataErrors}
+                  onEditAuthor={handleEdit}
+                  editAuthor={state.edit}
+                  onAllAuthors={allAuthors}
+                  onEditBio={editAuthor}
+                  onGoHome={goHome}
+                  onLoginAuthor={loginAuthor}
+                  onLoginAuthorData={loginAuthorData}
                 />
               )}
-              <Route exact path="/author/" render={() => <Author />} />
-              <Route path="/book/" render={() => <Book />} />
-            </Switch>
-          </div>
+            />
+            <Route
+              path="/book/"
+              render={() => (
+                <Book
+                  onDifference={difference}
+                  onLocation={location}
+                  onHistory={history}
+                  onGoAuthor={goAuthor}
+                  onGoHome={goHome}
+                  onQueryBooks={queryBooks}
+                  onMeQuery={meQuery}
+                  onEditBook={editBook}
+                  editBookData={editBookData}
+                  editBookDataErrors={editBookDataErrors}
+                />
+              )}
+            />
+          </Switch>
         </div>
-      </React.Fragment>
-    );
-  }
+      </div>
+    </div>
+  );
 };
 
 export default withRouter(App);
