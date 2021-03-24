@@ -71,7 +71,7 @@
 ::-webkit-scrollbar-thumb {
   background: rgb(255, 255, 255);
 }
-.callNoAnswer {
+.loading {
   color: rgb(56, 57, 119);
   position: fixed;
   width: 100%;

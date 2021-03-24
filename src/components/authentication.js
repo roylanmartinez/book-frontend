@@ -43,14 +43,12 @@ const LOGIN_USER = gql`
 
 const Authentication = (props) => {
   let usernameL, passwordL, usernameR, emailR, password1R, password2R;
-  const [createUser, { data }] = useMutation(CREATE_USER);
-  const [loginUser, { data: datal }] = useMutation(LOGIN_USER);
 
   const [state, setstate] = useState({
     errors: false,
     errorsl: false,
-    data: data,
-    datal: datal,
+    data: props.onCreateUserData,
+    datal: props.onLoginUserData,
     register: false,
   });
   // useEffect(() => {
@@ -59,17 +57,17 @@ const Authentication = (props) => {
   // }, []);
 
   useEffect(() => {
-    if (data) {
-      if (data.createUser.success) {
+    if (props.onCreateUserData) {
+      if (props.onCreateUserData.createUser.success) {
         // console.log(data.createUser.token);
-        localStorage.setItem("token", data.createUser.token);
-      } else if (data.createUser.errors) {
-        const errorNotification = Object.keys(data.createUser.errors).map(
-          function (key, index) {
-            return data.createUser.errors[key][0].message;
-            // return `${key} ${data.createUser.errors[key]}`;
-          }
-        );
+        localStorage.setItem("token", props.onCreateUserData.createUser.token);
+      } else if (props.onCreateUserData.createUser.errors) {
+        const errorNotification = Object.keys(
+          props.onCreateUserData.createUser.errors
+        ).map(function (key, index) {
+          return props.onCreateUserData.createUser.errors[key][0].message;
+          // return `${key} ${data.createUser.errors[key]}`;
+        });
         // console.log(errorNotification);
         setstate({
           ...state,
@@ -79,18 +77,18 @@ const Authentication = (props) => {
         // setstate({ ...state, errors: data.createUser.errors });
       }
     }
-    if (datal) {
-      if (datal.loginUser.success) {
+    if (props.onLoginUserData) {
+      if (props.onLoginUserData.loginUser.success) {
         // console.log("success", data.createUser.token);
-        localStorage.setItem("token", datal.loginUser.token);
+        localStorage.setItem("token", props.onLoginUserData.loginUser.token);
       } else {
         // console.log("datal");
-        const errorNotificationl = Object.keys(datal.loginUser.errors).map(
-          function (key, index) {
-            return datal.loginUser.errors[key][0].message;
-            // return `${key} ${datal.loginUser.errorsl[key]}`;
-          }
-        );
+        const errorNotificationl = Object.keys(
+          props.onLoginUserData.loginUser.errors
+        ).map(function (key, index) {
+          return props.onLoginUserData.loginUser.errors[key][0].message;
+          // return `${key} ${datal.loginUser.errorsl[key]}`;
+        });
         // console.log(errorNotificationl[0]);
         setstate({
           ...state,
@@ -100,7 +98,7 @@ const Authentication = (props) => {
         // setstate({ ...state, errorsl: datal.loginUser.errorsl });
       }
     }
-  }, [state.data, data, state.datal, datal]);
+  }, [state.data, props.onCreateUserData, state.datal, props.onLoginUserData]);
   const registerSection = (
     <div className="Login">
       <div>
@@ -110,7 +108,7 @@ const Authentication = (props) => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            createUser({
+            props.onCreateUser({
               variables: {
                 email: emailR.value,
                 username: usernameR.value,
@@ -228,7 +226,7 @@ const Authentication = (props) => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          loginUser({
+          props.onLoginUser({
             variables: {
               username: usernameL.value,
               password: passwordL.value,

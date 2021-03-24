@@ -63,11 +63,31 @@ const client = new ApolloClient({
               return incoming;
             },
           },
+          editBookData: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+          queryBooks: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+          allAuthors: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
         },
       },
     },
   }),
 });
+
+// const client = new ApolloClient({
+//   link: authLink.concat(httpLink),
+//   cache: new InMemoryCache({}),
+// });
 
 ReactDOM.render(
   <React.StrictMode>

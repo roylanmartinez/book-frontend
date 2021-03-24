@@ -47,11 +47,15 @@ const FeedNews = (props) => {
   //   pollInterval: 500,
   // });
 
-  // useEffect(() => {
-  //   if (props.onQueryBooks) {
-  //     console.log("update query books");
-  //   }
-  // }, [props.onQueryBooks.]);
+  useEffect(() => {
+    if (props.readToken) {
+      props.onVerifyToken({
+        variables: {
+          token: localStorage.getItem("token"),
+        },
+      });
+    }
+  }, []);
 
   // const results =
 

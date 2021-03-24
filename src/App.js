@@ -12,7 +12,7 @@ import {
   withRouter,
   useLocation,
 } from "react-router-dom";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
 import { useQuery, gql, useMutation } from "@apollo/client";
 
 const VERIFY_TOKEN = gql`
@@ -135,22 +135,37 @@ const EDIT_BOOK = gql`
   }
 `;
 
-// const LOGIN_USER = gql`
-//   mutation loginAuthor($username: String!, $password: String!) {
-//     loginUser(username: $username, password: $password) {
-//       success
-//       errors
-//       token
-//       unarchiving
-//       user {
-//         id
-//         username
-//       }
-//     }
-//   }
-// `;
+const CREATE_USER = gql`
+  mutation createUserF(
+    $email: String!
+    $username: String!
+    $password1: String!
+    $password2: String!
+  ) {
+    createUser(
+      email: $email
+      username: $username
+      password1: $password1
+      password2: $password2
+    ) {
+      success
+      errors
+      token
+    }
+    loginUser(username: $username, password: $password1) {
+      success
+      errors
+      token
+      unarchiving
+      user {
+        id
+        username
+      }
+    }
+  }
+`;
 
-const LOGIN_AUTHOR = gql`
+const LOGIN_USER = gql`
   mutation loginAuthor($username: String!, $password: String!) {
     loginUser(username: $username, password: $password) {
       success
@@ -165,9 +180,10 @@ const LOGIN_AUTHOR = gql`
   }
 `;
 const App = (props) => {
-  const [verifyToken, { data: verifyTokenData, loading }] = useMutation(
-    VERIFY_TOKEN
-  );
+  const [
+    verifyToken,
+    { data: verifyTokenData, error, loading: loadingVerificationTokenData },
+  ] = useMutation(VERIFY_TOKEN);
 
   const [addBook, { data: addBookData }] = useMutation(ADD_BOOK);
 
@@ -175,7 +191,9 @@ const App = (props) => {
 
   const [editAuthor, { data: editAuthorData }] = useMutation(EDIT_AUTHOR);
 
-  const [loginAuthor, { data: loginAuthorData }] = useMutation(LOGIN_AUTHOR);
+  const [loginUser, { data: loginUserData }] = useMutation(LOGIN_USER);
+
+  const [createUser, { data: createUserData }] = useMutation(CREATE_USER);
 
   const [
     editBook,
@@ -188,7 +206,7 @@ const App = (props) => {
     pollInterval: 500,
   });
 
-  const { data: meQuery } = useQuery(ME_QUERY, {
+  const { data: meQuery, loading: loadingMeQuery } = useQuery(ME_QUERY, {
     pollInterval: 500,
   });
 
@@ -277,7 +295,7 @@ const App = (props) => {
   useEffect(() => {
     if (localStorage.getItem("token")) {
       if (localStorage.getItem("token") !== "") {
-        console.log("token was verified");
+        // console.log("verify query was sent");
         verifyToken({
           variables: {
             token: localStorage.getItem("token"),
@@ -292,6 +310,8 @@ const App = (props) => {
   //   console.log(verifyTokenData, "waiting for answer");
   //   return <div className="callNoAnswer"></div>;
   // }
+  if (loadingVerificationTokenData || loadingMeQuery)
+    return <div className="loading"></div>;
 
   return (
     <div>
@@ -329,47 +349,89 @@ const App = (props) => {
             </div>
           </div>
         ) : (
-          <h1>not me query</h1>
+          <h2></h2>
         )
       ) : (
-        ""
+        <h1></h1>
       )}
       <div className="main">
         <div className="head">
           <Switch>
-            {verifyTokenData ? (
-              // if there is verifyTokenData
-              verifyTokenData.verify.success ? (
-                // if verifyTokenData returned true
+            <Fragment>
+              {verifyTokenData ? (
+                // if there is verifyTokenData
+                verifyTokenData.verify.success ? (
+                  // if verifyTokenData returned true
+                  <Route
+                    exact
+                    path="/"
+                    render={() => (
+                      <FeedNews
+                        onDifference={difference}
+                        onGoAuthor={goAuthor}
+                        onGoBook={goBook}
+                        onGoHome={goHome}
+                        onQueryBooks={queryBooks}
+                        onAddBook={addBook}
+                        onEditLike={editLike}
+                        onMeQuery={meQuery}
+                      />
+                    )}
+                  />
+                ) : (
+                  <Route
+                    exact
+                    path="/"
+                    render={() => (
+                      <Authentication
+                        onLoginUser={loginUser}
+                        onCreateUser={createUser}
+                        onLoginUserData={loginUserData}
+                        onCreateUserData={createUserData}
+                      />
+                    )}
+                  />
+                )
+              ) : localStorage.getItem("token") === null ||
+                localStorage.getItem("token") === "" ? (
+                // if there is no local token
                 <Route
                   exact
                   path="/"
                   render={() => (
-                    <FeedNews
-                      onDifference={difference}
-                      onGoAuthor={goAuthor}
-                      onGoBook={goBook}
-                      onGoHome={goHome}
-                      onQueryBooks={queryBooks}
-                      onAddBook={addBook}
-                      onEditLike={editLike}
-                      onMeQuery={meQuery}
+                    <Route
+                      exact
+                      path="/"
+                      render={() => (
+                        <Authentication
+                          onLoginUser={loginUser}
+                          onCreateUser={createUser}
+                          onLoginUserData={loginUserData}
+                          onCreateUserData={createUserData}
+                        />
+                      )}
                     />
                   )}
                 />
+              ) : localStorage.getItem("token") ? (
+                // if no answer on verifytokendata but there is local token
+                <FeedNews
+                  onDifference={difference}
+                  onGoAuthor={goAuthor}
+                  onGoBook={goBook}
+                  onGoHome={goHome}
+                  onQueryBooks={queryBooks}
+                  onAddBook={addBook}
+                  onEditLike={editLike}
+                  onMeQuery={meQuery}
+                  readToken={true}
+                  onVerifyToken={verifyToken}
+                />
               ) : (
-                // <h1 onClick={() => console.log(meQuery)}>verified success</h1>
-                // if verifyTokenData returned false
-                // <h1 onClick={() => console.log(verifyTokenData)}>1</h1>
-                <Route exact path="/" render={() => <Authentication />} />
-              )
-            ) : (
-              // verifyTokenData is still not received
-              <React.Fragment>
-                <div className="callNoAnswer"></div>
-                {/* <Route exact path="/" render={() => <Authentication />} /> */}
-              </React.Fragment>
-            )}
+                <div className="loading"></div>
+              )}
+            </Fragment>
+
             <Route
               path="/author/"
               render={() => (
@@ -387,8 +449,6 @@ const App = (props) => {
                   onAllAuthors={allAuthors}
                   onEditBio={editAuthor}
                   onGoHome={goHome}
-                  onLoginAuthor={loginAuthor}
-                  onLoginAuthorData={loginAuthorData}
                 />
               )}
             />
