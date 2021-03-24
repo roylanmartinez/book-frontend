@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 // import Searcher from "./searcher";
 import { useHistory, withRouter } from "react-router-dom";
 const Author = (props) => {
-  let username, email;
+  let bUsername, bEmail;
   const [state, setstate] = useState({
     edit: false,
   });
@@ -120,7 +120,11 @@ const Author = (props) => {
               }}
               className="text"
             >
-              Loved books by {props.onHistory.location.pathname.split("/")[2]}
+              Loved books by{" "}
+              {props.onHistory.location.pathname.split("/")[2] ===
+              props.onMeQuery.me.username
+                ? " you"
+                : props.onHistory.location.pathname.split("/")[2]}
             </h4>
             <div className="favoriteContainer">
               {props.onAllAuthors.allAuthors
@@ -175,7 +179,15 @@ const Author = (props) => {
         ).length >= 1 ? (
           <React.Fragment>
             <h2
-              // onClick={() => console.log(3)}
+              onClick={() =>
+                console.log(
+                  props.onQueryBooks.allBooks.filter(
+                    (item) =>
+                      item.author.username ===
+                      props.onHistory.location.pathname.split("/")[2]
+                  ).length
+                )
+              }
               style={{
                 marginLeft: "10px",
                 marginTop: "10px",
@@ -183,19 +195,34 @@ const Author = (props) => {
               }}
               className="text"
             >
-              Books published by{" "}
-              {props.onHistory.location.pathname.split("/")[2]}
+              Published books by{" "}
+              {props.onHistory.location.pathname.split("/")[2] ===
+              props.onMeQuery.me.username
+                ? " you"
+                : props.onHistory.location.pathname.split("/")[2]}
             </h2>
-            {props.onQueryBooks.allBooks
-              .filter(
-                (item) =>
-                  item.author.username ===
-                  props.onHistory.location.pathname.split("/")[2]
-              )
-              .map((item) => (
-                <Post key={item.id} onHistory={history} book={item}></Post>
-              ))}
-            {/* <Post></Post> */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column-reverse",
+              }}
+            >
+              {props.onQueryBooks.allBooks
+                .filter(
+                  (item) =>
+                    item.author.username ===
+                    props.onHistory.location.pathname.split("/")[2]
+                )
+                .map((item) => (
+                  <Post
+                    key={item.id}
+                    onHistory={props.onHistory}
+                    book={item}
+                    onDifference={props.onDifference}
+                  ></Post>
+                ))}
+              {/* <Post></Post> */}
+            </div>
           </React.Fragment>
         ) : (
           ""
@@ -211,9 +238,10 @@ const Author = (props) => {
             Username
           </label>
           <input
+            defaultValue={props.onMeQuery.me.username}
             // style={{ zIndex: "1000" }}
             ref={(node) => {
-              username = node;
+              bUsername = node;
             }}
             placeholder="username"
             // onClick={openSearcher}
@@ -227,8 +255,9 @@ const Author = (props) => {
             Email
           </label>
           <input
+            defaultValue={props.onMeQuery.me.email}
             ref={(node) => {
-              email = node;
+              bEmail = node;
             }}
             // style={{ zIndex: "1000" }}
             placeholder="email"
@@ -258,15 +287,48 @@ const Author = (props) => {
           </small>
           <button
             onClick={() => {
-              props.onEditBio({
-                variables: {
-                  authorid: 12,
-                  username: username.value,
-                  email: email.value,
-                },
-              });
-              // localStorage.setItem("token", "");
+              localStorage.setItem("username", bUsername.value);
+
+              props
+                .onEditBio({
+                  variables: {
+                    authorid: props.onAllAuthors.allAuthors.filter(
+                      (a) =>
+                        a.username ===
+                        props.onHistory.location.pathname.split("/")[2]
+                    )[0].id,
+                    username: bUsername.value,
+                    email: bEmail.value,
+                  },
+                })
+                .then((result) => result)
+                .then(() => {
+                  props
+                    .onLoginUser({
+                      variables: {
+                        username: localStorage.getItem("username"),
+                        password: localStorage.getItem("password"),
+                      },
+                    })
+                    .then((response) => response)
+                    .then((responseJson) => {
+                      if (responseJson.data.loginUser.success) {
+                        console.log("succeees");
+                        history.push(
+                          `/author/${localStorage.getItem("username")}`
+                        );
+                        window.location.reload();
+                      }
+                    });
+                });
+
               props.onGoHome();
+              // props.onSetState({
+              //   ...state,
+              //   signin: true,
+              // });
+
+              // setTimeout(() => window.location.reload(), 3);
               // window.location.reload();
               // window.location.reload();
             }}
@@ -541,7 +603,8 @@ const Post = (props) => {
             // onClick={() => console.log(props.book.item.love)}
             style={{ color: "gray" }}
           >
-            Published ago {props.book.time}
+            Published ago{" "}
+            {props.onDifference(new Date(), new Date(props.book.made))}
           </small>
         </div>
       </div>

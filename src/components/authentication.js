@@ -108,6 +108,8 @@ const Authentication = (props) => {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            localStorage.setItem("username", usernameR.value);
+            localStorage.setItem("password", password1R.value);
             props.onCreateUser({
               variables: {
                 email: emailR.value,
@@ -209,7 +211,7 @@ const Authentication = (props) => {
               Login
             </small>
             <button
-              onClick={() => localStorage.setItem("password", password1R.value)}
+              // onClick={() => localStorage.setItem("password", password1R.value)}
               // the function is delegated to the form
               type="submit"
               className="btn btn-outline-light"
@@ -226,6 +228,8 @@ const Authentication = (props) => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          localStorage.setItem("username", usernameL.value);
+          localStorage.setItem("password", passwordL.value);
           props.onLoginUser({
             variables: {
               username: usernameL.value,
@@ -294,7 +298,7 @@ const Authentication = (props) => {
             register
           </small>
           <button
-            onClick={() => localStorage.setItem("password", passwordL.value)}
+            // onClick={() => localStorage.setItem("password", passwordL.value)}
             type="submit"
             className="btn btn-outline-light"
           >

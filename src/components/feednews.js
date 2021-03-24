@@ -216,7 +216,7 @@ const FeedNews = (props) => {
             // className="fadeIn"
             style={{ color: "white", marginTop: "50px", fontWeight: "1000" }}
           >
-            Published books in the book database
+            Recently shared books
           </p>
         </div>
         <div
@@ -225,17 +225,6 @@ const FeedNews = (props) => {
             flexDirection: "column-reverse",
           }}
         >
-          {/* {props.onQueryBooks
-            ? props.onQueryBooks.allBooks.map((item) =>
-                Post(
-                  item.id,
-                  item.name,
-                  item.author.username,
-                  item.description,
-                  item.made
-                )
-              )
-            : ""} */}
           {props.onQueryBooks
             ? props.onQueryBooks.allBooks.map((item) => (
                 <Post
@@ -277,8 +266,8 @@ const Post = (props) => {
       <div className="post">
         <div
           style={{
-            width: "200px",
-            maxHeight: "200px",
+            width: "230px",
+            maxHeight: "230px",
             // paddingBottom: "100px",
           }}
         >
@@ -349,27 +338,34 @@ const Post = (props) => {
             {props.onDifference(new Date(), new Date(props.item.made))}
           </small>
           <br></br>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <small style={{ marginRight: "5px", wordBreak: "break-all" }}>
-              {props.item.love.length === 0 ? (
-                ""
-              ) : (
-                <span>
-                  <span>❤</span> loved by{" "}
-                </span>
-              )}
-              {props.item.love.map((value) => {
-                return (
-                  <b
-                    onClick={() => props.onGoAuthor(value.username)}
-                    key={value.id}
-                    className=" clickable"
-                  >
-                    ●{` ${value.username} `}
-                  </b>
-                );
-              })}
-            </small>
+          <small style={{ marginRight: "5px", wordBreak: "break-all" }}>
+            {props.item.love.length === 0 ? (
+              ""
+            ) : (
+              <span>
+                <span>❤</span> loved by{" "}
+              </span>
+            )}
+            {props.item.love.map((value) => {
+              return (
+                <b
+                  onClick={() => props.onGoAuthor(value.username)}
+                  key={value.id}
+                  className=" clickable"
+                >
+                  ●{` ${value.username} `}
+                </b>
+              );
+            })}
+          </small>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "15px",
+              marginBottom: "15px",
+            }}
+          >
             {state.like !== undefined ? (
               state.like ? (
                 <button
@@ -393,7 +389,7 @@ const Post = (props) => {
                   type="button"
                   className="btn btn-light"
                 >
-                  liked
+                  <i className="far fa-heart"></i> liked
                 </button>
               ) : (
                 <button

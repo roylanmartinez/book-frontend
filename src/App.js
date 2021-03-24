@@ -4,6 +4,7 @@ import Author from "./components/author";
 import Book from "./components/book";
 import FeedNews from "./components/feednews";
 import Authentication from "./components/authentication";
+import SignInAuthor from "./components/signinauthor";
 
 import {
   Switch,
@@ -202,9 +203,12 @@ const App = (props) => {
     pollInterval: 500,
   });
 
-  const { data: queryBooks } = useQuery(QUERY_BOOKS, {
-    pollInterval: 500,
-  });
+  const { data: queryBooks, loading: loadingQueryBooks } = useQuery(
+    QUERY_BOOKS,
+    {
+      pollInterval: 500,
+    }
+  );
 
   const { data: meQuery, loading: loadingMeQuery } = useQuery(ME_QUERY, {
     pollInterval: 500,
@@ -224,6 +228,8 @@ const App = (props) => {
     data: verifyTokenData,
     update: false,
     edit: false,
+    signin: false,
+    loading: false,
   });
 
   const history = useHistory({});
@@ -303,6 +309,9 @@ const App = (props) => {
         });
       }
     }
+    // if (state.signin){
+    //   s
+    // }
   }, []);
 
   // if (loading) {
@@ -310,12 +319,21 @@ const App = (props) => {
   //   console.log(verifyTokenData, "waiting for answer");
   //   return <div className="callNoAnswer"></div>;
   // }
-  if (loadingVerificationTokenData || loadingMeQuery)
-    return <div className="loading"></div>;
+  if (loadingVerificationTokenData || loadingMeQuery || loadingQueryBooks)
+    return <div className="loading">loadinnnggg</div>;
+  // else if (meQu)
+
+  // state.signin && meQuery.me;
 
   return (
-    <div>
-      {meQuery && verifyTokenData ? (
+    <div onClick={() => console.log(meQuery)}>
+      {state.signin ? (
+        <SignInAuthor
+          onSetState={setState}
+          onLoginUser={loginUser}
+          signIn={state.signin}
+        />
+      ) : meQuery && verifyTokenData ? (
         meQuery.me ? (
           <div className={verifyTokenData.verify.success ? "navbar" : "dnone"}>
             <h2 onClick={goHome} className="navbar_logo-s text">
@@ -349,35 +367,96 @@ const App = (props) => {
             </div>
           </div>
         ) : (
-          <h2></h2>
+          // <h1 onClick={() => console.log(meQuery, verifyTokenData)}>
+          //   not me query or verify token data
+          // </h1>
+          <div onClick={() => console.log(meQuery)} className="loading">
+            not query me
+          </div>
         )
       ) : (
-        <h1></h1>
+        // <SigninInAuthor />
+        <h1 onClick={() => console.log(state.signin)}>other</h1>
       )}
       <div className="main">
         <div className="head">
           <Switch>
-            <Fragment>
-              {verifyTokenData ? (
+            <React.Fragment>
+              {state.signin ? (
+                <Fragment>
+                  {console.log(2)}
+                  <div
+                    onClick={() => console.log(state.signin)}
+                    className="loading"
+                  >
+                    sign in is true
+                  </div>
+                </Fragment>
+              ) : verifyTokenData ? (
                 // if there is verifyTokenData
-                verifyTokenData.verify.success ? (
+                verifyTokenData.verify.success && meQuery.me ? (
                   // if verifyTokenData returned true
-                  <Route
-                    exact
-                    path="/"
-                    render={() => (
-                      <FeedNews
-                        onDifference={difference}
-                        onGoAuthor={goAuthor}
-                        onGoBook={goBook}
-                        onGoHome={goHome}
-                        onQueryBooks={queryBooks}
-                        onAddBook={addBook}
-                        onEditLike={editLike}
-                        onMeQuery={meQuery}
-                      />
-                    )}
-                  />
+                  <React.Fragment>
+                    <Route
+                      exact
+                      path="/"
+                      render={() => (
+                        <FeedNews
+                          onDifference={difference}
+                          onGoAuthor={goAuthor}
+                          onGoBook={goBook}
+                          onGoHome={goHome}
+                          onQueryBooks={queryBooks}
+                          onAddBook={addBook}
+                          onEditLike={editLike}
+                          onMeQuery={meQuery}
+                        />
+                      )}
+                    />
+                    <Route
+                      path="/author/"
+                      render={() => (
+                        <Author
+                          onDifference={difference}
+                          onHistory={history}
+                          onGoAuthor={goAuthor}
+                          onGoBook={goBook}
+                          onQueryBooks={queryBooks}
+                          onMeQuery={meQuery}
+                          onEditBook={editBook}
+                          editBookData={editBookData}
+                          editBookDataErrors={editBookDataErrors}
+                          onEditAuthor={handleEdit}
+                          editAuthor={state.edit}
+                          onAllAuthors={allAuthors}
+                          onEditBio={editAuthor}
+                          onGoHome={goHome}
+                          onHistory={history}
+                          onVerifyToken={verifyToken}
+                          onLoginUser={loginUser}
+                          onSetState={setState}
+                          // onlogout={}
+                        />
+                      )}
+                    />
+                    <Route
+                      path="/book/"
+                      render={() => (
+                        <Book
+                          onDifference={difference}
+                          onLocation={location}
+                          onHistory={history}
+                          onGoAuthor={goAuthor}
+                          onGoHome={goHome}
+                          onQueryBooks={queryBooks}
+                          onMeQuery={meQuery}
+                          onEditBook={editBook}
+                          editBookData={editBookData}
+                          editBookDataErrors={editBookDataErrors}
+                        />
+                      )}
+                    />
+                  </React.Fragment>
                 ) : (
                   <Route
                     exact
@@ -399,17 +478,11 @@ const App = (props) => {
                   exact
                   path="/"
                   render={() => (
-                    <Route
-                      exact
-                      path="/"
-                      render={() => (
-                        <Authentication
-                          onLoginUser={loginUser}
-                          onCreateUser={createUser}
-                          onLoginUserData={loginUserData}
-                          onCreateUserData={createUserData}
-                        />
-                      )}
+                    <Authentication
+                      onLoginUser={loginUser}
+                      onCreateUser={createUser}
+                      onLoginUserData={loginUserData}
+                      onCreateUserData={createUserData}
                     />
                   )}
                 />
@@ -428,47 +501,14 @@ const App = (props) => {
                   onVerifyToken={verifyToken}
                 />
               ) : (
-                <div className="loading"></div>
+                <div
+                  onClick={() => console.log(state.loading)}
+                  className="loading"
+                >
+                  other below
+                </div>
               )}
-            </Fragment>
-
-            <Route
-              path="/author/"
-              render={() => (
-                <Author
-                  onHistory={history}
-                  onGoAuthor={goAuthor}
-                  onGoBook={goBook}
-                  onQueryBooks={queryBooks}
-                  onMeQuery={meQuery}
-                  onEditBook={editBook}
-                  editBookData={editBookData}
-                  editBookDataErrors={editBookDataErrors}
-                  onEditAuthor={handleEdit}
-                  editAuthor={state.edit}
-                  onAllAuthors={allAuthors}
-                  onEditBio={editAuthor}
-                  onGoHome={goHome}
-                />
-              )}
-            />
-            <Route
-              path="/book/"
-              render={() => (
-                <Book
-                  onDifference={difference}
-                  onLocation={location}
-                  onHistory={history}
-                  onGoAuthor={goAuthor}
-                  onGoHome={goHome}
-                  onQueryBooks={queryBooks}
-                  onMeQuery={meQuery}
-                  onEditBook={editBook}
-                  editBookData={editBookData}
-                  editBookDataErrors={editBookDataErrors}
-                />
-              )}
-            />
+            </React.Fragment>
           </Switch>
         </div>
       </div>
