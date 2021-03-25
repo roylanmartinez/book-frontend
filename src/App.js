@@ -69,8 +69,18 @@ const EDIT_LIKE = gql`
 `;
 
 const EDIT_AUTHOR = gql`
-  mutation editAuthor($authorid: ID!, $username: String!, $email: String!) {
-    editTheAuthor(authorid: $authorid, username: $username, email: $email) {
+  mutation editAuthor(
+    $authorid: ID!
+    $username: String!
+    $email: String!
+    $delete: Boolean!
+  ) {
+    editTheAuthor(
+      authorid: $authorid
+      username: $username
+      email: $email
+      delete: $delete
+    ) {
       __typename
     }
   }
@@ -320,13 +330,26 @@ const App = (props) => {
   //   return <div className="callNoAnswer"></div>;
   // }
   if (loadingVerificationTokenData || loadingMeQuery || loadingQueryBooks)
-    return <div className="loading">loadinnnggg</div>;
+    return (
+      <div
+        onClick={() =>
+          console.log(
+            loadingVerificationTokenData,
+            loadingMeQuery,
+            loadingQueryBooks
+          )
+        }
+        className="loading"
+      >
+        jklhkljkhjkhhgjh
+      </div>
+    );
   // else if (meQu)
 
   // state.signin && meQuery.me;
 
   return (
-    <div onClick={() => console.log(meQuery)}>
+    <div>
       {state.signin ? (
         <SignInAuthor
           onSetState={setState}
@@ -370,13 +393,11 @@ const App = (props) => {
           // <h1 onClick={() => console.log(meQuery, verifyTokenData)}>
           //   not me query or verify token data
           // </h1>
-          <div onClick={() => console.log(meQuery)} className="loading">
-            not query me
-          </div>
+          <div className="loading"></div>
         )
       ) : (
         // <SigninInAuthor />
-        <h1 onClick={() => console.log(state.signin)}>other</h1>
+        <h1 onClick={() => console.log(state.signin)}></h1>
       )}
       <div className="main">
         <div className="head">
@@ -384,15 +405,9 @@ const App = (props) => {
             <React.Fragment>
               {state.signin ? (
                 <Fragment>
-                  {console.log(2)}
-                  <div
-                    onClick={() => console.log(state.signin)}
-                    className="loading"
-                  >
-                    sign in is true
-                  </div>
+                  <div className="loading"></div>
                 </Fragment>
-              ) : verifyTokenData ? (
+              ) : verifyTokenData && meQuery ? (
                 // if there is verifyTokenData
                 verifyTokenData.verify.success && meQuery.me ? (
                   // if verifyTokenData returned true
@@ -501,12 +516,7 @@ const App = (props) => {
                   onVerifyToken={verifyToken}
                 />
               ) : (
-                <div
-                  onClick={() => console.log(state.loading)}
-                  className="loading"
-                >
-                  other below
-                </div>
+                <div className="loading"></div>
               )}
             </React.Fragment>
           </Switch>

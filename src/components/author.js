@@ -2,10 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 // import Searcher from "./searcher";
 import { useHistory, withRouter } from "react-router-dom";
 const Author = (props) => {
-  let bUsername, bEmail;
+  let bUsername, bEmail, dPassword;
   const [state, setstate] = useState({
     edit: false,
+    message: false,
   });
+
+  useEffect(() => {
+    if (dPassword) {
+      dPassword.value = "";
+    }
+  }, []);
   const history = useHistory({});
   if (
     props.onMeQuery &&
@@ -179,15 +186,6 @@ const Author = (props) => {
         ).length >= 1 ? (
           <React.Fragment>
             <h2
-              onClick={() =>
-                console.log(
-                  props.onQueryBooks.allBooks.filter(
-                    (item) =>
-                      item.author.username ===
-                      props.onHistory.location.pathname.split("/")[2]
-                  ).length
-                )
-              }
               style={{
                 marginLeft: "10px",
                 marginTop: "10px",
@@ -299,6 +297,7 @@ const Author = (props) => {
                     )[0].id,
                     username: bUsername.value,
                     email: bEmail.value,
+                    delete: false,
                   },
                 })
                 .then((result) => result)
@@ -313,7 +312,6 @@ const Author = (props) => {
                     .then((response) => response)
                     .then((responseJson) => {
                       if (responseJson.data.loginUser.success) {
-                        console.log("succeees");
                         history.push(
                           `/author/${localStorage.getItem("username")}`
                         );
@@ -321,16 +319,7 @@ const Author = (props) => {
                       }
                     });
                 });
-
-              props.onGoHome();
-              // props.onSetState({
-              //   ...state,
-              //   signin: true,
-              // });
-
-              // setTimeout(() => window.location.reload(), 3);
-              // window.location.reload();
-              // window.location.reload();
+              setTimeout(() => props.onGoHome(), 1);
             }}
             type="button"
             className="btn btn-outline-light"
@@ -468,14 +457,30 @@ const Author = (props) => {
             Confirm your password
           </label>
           <input
+            ref={(node) => {
+              dPassword = node;
+            }}
+            defaultValue=""
             // style={{ zIndex: "1000" }}
-            placeholder="new password (again)"
+            placeholder="Confirm your password"
             // onClick={openSearcher}
+            // id="custId"
+            // name="custId"
             className="input_style input_searcher"
-            type="text"
+            type="password"
             name="asdf"
           />
         </div>
+        <br></br>
+        <small
+          style={{
+            color: "red",
+            display: state.message ? "flex" : "none",
+            justifyContent: "center",
+          }}
+        >
+          please, insert a valid password
+        </small>
         <div
           style={{
             display: "flex",
@@ -494,7 +499,37 @@ const Author = (props) => {
           >
             cancel
           </small>
-          <button type="button" className="btn btn-outline-danger">
+          <button
+            onClick={() => {
+              if (dPassword.value === localStorage.getItem("password")) {
+                props
+                  .onEditBio({
+                    variables: {
+                      authorid: props.onAllAuthors.allAuthors.filter(
+                        (a) =>
+                          a.username ===
+                          props.onHistory.location.pathname.split("/")[2]
+                      )[0].id,
+                      username: "aklfsjdflkasd",
+                      email: "sdfasdfj@asdf.com",
+                      delete: true,
+                    },
+                  })
+                  .then((result) => result)
+                  .then(() => {
+                    history.push(`/`);
+                    window.location.reload();
+                  });
+              } else {
+                setstate({
+                  ...state,
+                  message: true,
+                });
+              }
+            }}
+            type="button"
+            className="btn btn-outline-danger"
+          >
             Delete Account <i className="fas fa-exclamation-triangle"></i>
           </button>
         </div>
