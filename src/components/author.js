@@ -8,11 +8,11 @@ const Author = (props) => {
     message: false,
   });
 
-  useEffect(() => {
-    if (dPassword) {
-      dPassword.value = "";
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (dPassword) {
+  //     dPassword.value = "";
+  //   }
+  // }, []);
   const history = useHistory({});
   if (
     props.onMeQuery &&
@@ -460,6 +460,9 @@ const Author = (props) => {
             ref={(node) => {
               dPassword = node;
             }}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="off"
             defaultValue=""
             // style={{ zIndex: "1000" }}
             placeholder="Confirm your password"

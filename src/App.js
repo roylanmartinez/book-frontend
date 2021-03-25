@@ -340,9 +340,7 @@ const App = (props) => {
           )
         }
         className="loading"
-      >
-        jklhkljkhjkhhgjh
-      </div>
+      ></div>
     );
   // else if (meQu)
 
